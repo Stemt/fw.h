@@ -62,7 +62,7 @@ The following function can be used to get event information from the `FW` contex
 
 | Getter | Description |
 |-|-|
-| `FW_Event fw_event(FW*)` | 
+| `FW_Event fw_event(FW*)` | The event that was received |
 | `const char* fw_name(FW*)` | Name of the affected file |
 
 ## Error Handling
