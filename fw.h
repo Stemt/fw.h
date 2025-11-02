@@ -1,4 +1,5 @@
-#include <stdio.h>
+#ifndef FW_H_
+#define FW_H_
 #include <string.h>
 #include <stdbool.h>
 
@@ -36,7 +37,6 @@ typedef enum{
 
 typedef enum{
   FW_E_UNKNOWN,
-  FW_E_INCOMPLETE_EVENT,
   FW_E_INVALID_ARGUMENT,
   FW_E_PATH_NOT_FOUND,
   FW_E_PATH_TOO_LONG,
@@ -56,6 +56,7 @@ typedef struct{
 #if defined __linux
   int fd;
   int wd;
+
 #elif defined __WIN32
   HANDLE handle;
   char change_buffer[1024];
@@ -65,6 +66,21 @@ typedef struct{
   
 } FW;
 
+// --- polling fucntions ---
+bool fw_init(FW* self, const char* path, FW_Event events);
+bool fw_watch(FW* self);
+void fw_deinit(FW* self);
+bool fw_once(FW* self, const char* path, FW_Event events);
+
+// --- event data getters ---
+FW_Event fw_event(FW* self);
+const char* fw_name(FW* self);
+
+// --- error handling ---
+const char* fw_strerror(FW_Error error);
+FW_Error fw_error(FW* self);
+
+#ifdef FW_IMPLEMENTATION
 bool fw_init(FW* self, const char* path, FW_Event events){
   self->watch_events = events;
 
@@ -281,44 +297,5 @@ bool fw_once(FW* self, const char* path, FW_Event events){
   fw_deinit(self);
   return true;
 }
-
-int main(int argc, char** argv){
-
-  const char* program = *argv;
-  argv++;
-  argc--;
-
-  const char* watch_path = ".";
-
-  if(argc > 0){
-    watch_path = *argv;
-  }
-
-  FW fw;
-  if(!fw_init(&fw, watch_path, FW_CREATE|FW_MODIFY|FW_DELETE|FW_MOVED_FROM|FW_MOVED_TO)){
-    printf("failed to init\n");
-    return 1;
-  }
-
-  while(true){
-    if(fw_watch(&fw)){
-      if(fw_event(&fw) & FW_CREATE){
-        printf("created: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_MODIFY){
-        printf("modified: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_DELETE){
-        printf("deleted: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_MOVED_FROM){
-        printf("moved from: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_MOVED_TO){
-        printf("moved to: %s\n", fw_name(&fw));
-      }else{
-        printf("something happended\n");
-      }
-    }else{
-      return 1;
-    }
-  }
-
-  return 0;
-}
+#endif // FW_IMPLEMENTATION
+#endif // FW_H_

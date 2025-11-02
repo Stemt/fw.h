@@ -13,6 +13,7 @@ int main(int argc, char** argv){
     command = nob_shift_args(&argc, &argv);
   }
 
+#if defined(__linux)
   const char* target = "./app";
   if(command != NULL 
       && strcmp(command, "cross") == 0
@@ -21,20 +22,23 @@ int main(int argc, char** argv){
     nob_cmd_append(&cmd, "x86_64-w64-mingw32-gcc");
     nob_cc_flags(&cmd);
     nob_cc_output(&cmd, target);
-    //nob_cc_inputs(&cmd, "main.c");
-    nob_cc_inputs(&cmd, "main.c");
+    nob_cc_inputs(&cmd, "example.c");
     nob_cmd_append(&cmd, "-lshlwapi");
   }else{
     nob_cc(&cmd);
     nob_cc_flags(&cmd);
     nob_cc_output(&cmd, target);
-    nob_cc_inputs(&cmd, "main.c");
+    nob_cc_inputs(&cmd, "example.c");
   }
+#elif defined(__WIN32)
+  target = "./app.exe";
+  nob_cc(&cmd);
+  nob_cc_flags(&cmd);
+  nob_cc_output(&cmd, target);
+  nob_cc_inputs(&cmd, "example.c");
+  nob_cmd_append(&cmd, "-lshlwapi");
+#endif
   
-  if(!nob_cmd_run(&cmd)) return 1;
-
-  nob_cmd_append(&cmd, target);
-
   if(!nob_cmd_run(&cmd)) return 1;
 
   return 0;
