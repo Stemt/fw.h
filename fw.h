@@ -24,6 +24,10 @@ typedef enum{
   FW_DELETE = (1<<1),
   FW_MODIFY = (1<<2),
   FW_RENAME = (1<<3),
+  FW_ALL = FW_CREATE
+    | FW_DELETE
+    | FW_MODIFY
+    | FW_RENAME,
 } FW_Event;
 
 typedef enum{

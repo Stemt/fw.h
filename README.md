@@ -39,10 +39,10 @@ For a slightly more robust example read further down below.
 
 | Function | Description |
 |-|-|
-| `bool fw_init(FW*, const char* path, FW_Event events)` | Initializes the context to watch `path` for the given `FW_Event`s |
-| `bool fw_watch(FW*)` | Watches the given `path` provided in `fw_init` and only returns when one of the specified events occured or an error occured. |
+| `bool fw_init(FW*, const char* path, FW_Event events)` | Initializes the context to watch `path` for the given `FW_Event`s. Returns `false` on error. |
+| `bool fw_watch(FW*)` | Watches the given `path` provided in `fw_init` and only returns when one of the specified events occured or an error occured. Returns `false` on error. |
 | `void fw_deinit(FW*)` | Deinitializes the given context and cleans up any resources allocated by the context. Because event and error data is stored in the `FW` structure this is left accessible using the `fw_event`, `fw_name` and `fw_error` functions. |
-| `bool fw_once(FW*, const char* path, FW_Event events)` | Performs `fw_init` with the given arguments and if succesfull calls `fw_watch` and `fw_deinit` in that order. Leaving the user with deinitialized context still containing valid event and or error data (depending on the return value). |
+| `bool fw_once(FW*, const char* path, FW_Event events)` | Performs `fw_init` with the given arguments and if succesfull calls `fw_watch` and `fw_deinit` in that order. Leaving the user with deinitialized context still containing valid event and or error data (depending on the return value). Returns `false` on error. |
 
 ## Events
 
@@ -54,6 +54,7 @@ FW provides support for 5 different kinds of events:
 | `FW_DELETE` | Received when a file is deleted. |
 | `FW_MODIFY` | Received when a file is modified. |
 | `FW_RENAME` | Received when a file is renamed. |
+| `FW_ALL`  | Enables all events when passed to `fw_init`, cannot be itself received as event. |
 
 An important note about `FW_RENAME` is that sometimes the OS may not report the old or new name of the file if it is outside of the monitored directoy.
 
@@ -92,28 +93,36 @@ This can be done using a combination of `fw_init`, `fw_watch` and `fw_deinit`.
 #include "fw.h"
 
 int main(void){
+  FW fw;
+  const char* watch_path = ".";
 
-    FW fw;
-    const char* watch_path = ".";
-    if(fw_init(&fw, watch_path, FW_CREATE | FW_DELETE) == false){
-        printf("FW init error: %s", fw_strerror(fw_error(&fw)));
-        return 1;
+  if(fw_init(&fw, watch_path, FW_CREATE
+        | FW_MODIFY 
+        | FW_DELETE
+        | FW_RENAME
+      ) == false
+  ){
+    printf("init failed %s\n", fw_strerror(fw_error(&fw)));
+    return 1;
+  }
+
+  while(true){
+    if(fw_watch(&fw)){
+      if(fw_event(&fw) & FW_CREATE){
+        printf("created: %s\n", fw_name(&fw));
+      }else if(fw_event(&fw) & FW_MODIFY){
+        printf("modified: %s\n", fw_name(&fw));
+      }else if(fw_event(&fw) & FW_DELETE){
+        printf("deleted: %s\n", fw_name(&fw));
+      }else if(fw_event(&fw) & FW_RENAME){
+        printf("rename: %s -> %s\n", fw_name(&fw), fw_new_name(&fw));
+      }
+    }else{
+      printf("watch failed %s\n", fw_strerror(fw_error(&fw)));
+      return 1;
     }
+  }
 
-    while(true){
-        if(fw_watch(&fw)){
-            if(fw_event(&fw) & FW_CREATE){
-                printf("file created: %s", fw_name(&fw));
-            }else if(fw_event(&fw) & FW_DELETE){
-                printf("file deleted: %s", fw_name(&fw));
-            }
-        }else{
-            printf("FW error: %s", fw_strerror(fw_error(&fw)));
-            fw_deinit(&fw);
-            return 1;
-        }
-    }
-
-    return 0;
+  return 0;
 }
 ```
