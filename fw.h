@@ -394,7 +394,7 @@ const char* fw_strerror(FW_Error error){
     case FW_E_PATH_NOT_FOUND: return "Path not found"; 
     case FW_E_PATH_TOO_LONG: return "Path is too long"; 
     case FW_E_UNKNOWN: return "An unknown error occured"; 
-    case FW_E_INCOMPLETE_EVENT: return "An incomplete (rename) event was recieved"; 
+    case FW_E_INCOMPLETE_EVENT: return "An incomplete (FW_RENAME) event was received"; 
   }
   return "Invalid error code provided to fw_strerror";
 }
