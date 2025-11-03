@@ -83,6 +83,7 @@ FW_Error fw_error(FW* self);
 
 #ifdef FW_IMPLEMENTATION
 bool fw_init(FW* self, const char* path, FW_Event events){
+  memset(self, 0, sizeof(*self));
   self->watch_events = events;
 
 #if defined(__linux)
@@ -127,7 +128,6 @@ bool fw_init(FW* self, const char* path, FW_Event events){
 
 #elif defined(__WIN32)
 
-  self->event = NULL;
   self->handle = CreateFile(strdup(path),
       FILE_LIST_DIRECTORY,
       FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
