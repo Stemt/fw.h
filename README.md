@@ -50,11 +50,16 @@ FW provides support for 5 different kinds of events:
 
 | Event | Description |
 |-|-|
-| `FW_CREATE` | Received when a file is created |
-| `FW_DELETE` | Received when a file is deleted |
-| `FW_MODIFY` | Received when a file is modified |
-| `FW_MOVED_FROM` | Received when a file is about to receive a new name |
-| `FW_MOVED_TO` | Usually received right after `FW_MOVED_FROM` when a file has changed its name |
+| `FW_CREATE` | Received when a file is created. |
+| `FW_DELETE` | Received when a file is deleted. |
+| `FW_MODIFY` | Received when a file is modified. |
+| `FW_RENAME` | Received when a file is renamed. |
+
+An important note about `FW_RENAME` is that sometimes the OS may not report the old or new name of the file if it is outside of the monitored directoy.
+
+In this case one of two thing can happend:
+- FW returns FW_CREATE and or FW_DELETE instead of FW_RENAME.
+- (TODO check if this actually happens) `fw_watch` returns true with FW_RENAME set but also `FW_E_INCOMPLETE_EVENT` set and either `fw_name` or `fw_new_name` return a zero-length string.
 
 ## Get Event Information
 
@@ -62,8 +67,9 @@ The following function can be used to get event information from the `FW` contex
 
 | Getter | Description |
 |-|-|
-| `FW_Event fw_event(FW*)` | The event that was received |
-| `const char* fw_name(FW*)` | Name of the affected file |
+| `FW_Event fw_event(FW*)` | The event that was received. |
+| `const char* fw_name(FW*)` | Name of the affected file. |
+| `const char* fw_new_name(FW*)` | New name of file if it has been renamed, in this case the old name is accessible using `fw_name`. |
 
 ## Error Handling
 
