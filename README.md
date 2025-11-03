@@ -54,7 +54,7 @@ For a slightly more robust example read further down below.
 | `FW_RENAME` | Received when a file is renamed. |
 | `FW_ALL`  | Enables all events when passed to `fw_init`, cannot be itself received as event. |
 
-An important note about `FW_RENAME` is that sometimes the OS may not report the old or new name of the file if it is outside of the monitored directoy.
+An important note about `FW_RENAME` is that sometimes the OS may not report the old or new name of the file if it is from or to a location outside of the monitored directoy.
 
 In this case one of two thing can happend:
 - FW returns FW_CREATE and or FW_DELETE instead of FW_RENAME.
