@@ -41,7 +41,7 @@ For a slightly more robust example read further down below.
 |-|-|
 | `bool fw_init(FW*, const char* path, FW_Event events)` | Initializes the context to watch `path` for the given `FW_Event`s. Returns `false` on error. |
 | `bool fw_watch(FW*)` | Watches the given `path` provided in `fw_init` and only returns when one of the specified events occured or an error occured. Returns `false` on error. |
-| `void fw_deinit(FW*)` | Deinitializes the given context and cleans up any resources allocated by the context. Because event and error data is stored in the `FW` structure this is left accessible using the `fw_event`, `fw_name` and `fw_error` functions. |
+| `void fw_deinit(FW*)` | Deinitializes the given context and cleans up any resources allocated by the context. Because event and error data is stored in the `FW` structure this is left accessible using the `fw_event`, `fw_name`, `fw_new_name` and `fw_error` functions. |
 | `bool fw_once(FW*, const char* path, FW_Event events)` | Performs `fw_init` with the given arguments and if succesfull calls `fw_watch` and `fw_deinit` in that order. Leaving the user with deinitialized context still containing valid event and or error data (depending on the return value). Returns `false` on error. |
 
 ## Events
