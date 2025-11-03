@@ -6,41 +6,84 @@ Simple cross-platform file watcher
 - Windows (win32)
 - Linux (inotify)
 
-## Simplest Example
-
-The following example shows how to wait on a single specified `FW_Event` using a single function.
-This easiest if you need to just wait on a change in a directory for example, but this method may
-miss events if more than 1 is received at the same time or between `fw_once` calls.
+## Simple Example
 
 ```C
 #define FW_IMPLEMENTATION
 #include "fw.h"
 
 int main(void){
+  FW fw;
+  const char* watch_path = ".";
 
-    FW fw;
-    const char* watch_path = ".";
+  if(fw_init(&fw, watch_path, FW_CREATE
+        | FW_MODIFY 
+        | FW_DELETE
+        | FW_RENAME
+      ) == false
+  ){
+    printf("init failed %s\n", fw_strerror(fw_error(&fw)));
+    return 1;
+  }
 
-    while(true){
-        if(fw_once(&fw, watch_path, FW_CREATE | FW_DELETE)){
-            if(fw_event(&fw) & FW_CREATE){
-                printf("file created: %s", fw_name(&fw));
-            }else if(fw_event(&fw) & FW_DELETE){
-                printf("file deleted: %s", fw_name(&fw));
-            }
-        }else{
-            printf("FW error: %s", fw_strerror(fw_error(&fw)));
-            return 1;
-        }
+  if(fw_watch(&fw)){
+    if(fw_event(&fw) & FW_CREATE){
+      printf("created: %s\n", fw_name(&fw));
+    }else if(fw_event(&fw) & FW_MODIFY){
+      printf("modified: %s\n", fw_name(&fw));
+    }else if(fw_event(&fw) & FW_DELETE){
+      printf("deleted: %s\n", fw_name(&fw));
+    }else if(fw_event(&fw) & FW_RENAME){
+      printf("rename: %s -> %s\n", fw_name(&fw), fw_new_name(&fw));
     }
+  }else{
+    printf("watch failed %s\n", fw_strerror(fw_error(&fw)));
+    fw_deinit(&fw);
+    return 1;
+  }
 
-    return 0;
+  fw_deinit(&fw);
+
+  return 0;
 }
 ```
 
-For a slightly more robust example read further down below.
+### Compact but less robust example
+
+The above example is quite complete and robust but if you don't require that robustness and just quickly want to throw something together that waits on a change in a directory a single `fw_once` call can be used.
+
+This is less robust in the sense that it is more likely to miss events because the context is only active during the `fw_once` call during which only 1 event can be received and outside which events are not recorded.
+
+```C
+#define FW_IMPLEMENTATION
+#include "fw.h"
+
+int main(void){
+  FW fw;
+  const char* watch_path = ".";
+
+  if(fw_once(&fw, watch_path, FW_ALL){
+    if(fw_event(&fw) & FW_CREATE){
+      printf("created: %s\n", fw_name(&fw));
+    }else if(fw_event(&fw) & FW_MODIFY){
+      printf("modified: %s\n", fw_name(&fw));
+    }else if(fw_event(&fw) & FW_DELETE){
+      printf("deleted: %s\n", fw_name(&fw));
+    }else if(fw_event(&fw) & FW_RENAME){
+      printf("rename: %s -> %s\n", fw_name(&fw), fw_new_name(&fw));
+    }
+  }else{
+    printf("watch once failed %s\n", fw_strerror(fw_error(&fw)));
+    return 1;
+  }
+
+  return 0;
+}
+```
 
 ## Polling event functions
+
+The following function are used to poll for events.
 
 | Function | Description |
 |-|-|
@@ -79,53 +122,3 @@ The following function can be used to get event information from the `FW` contex
 
 `FW_Error` codes can be retrieved using `fw_error(FW*)`.
 Though, current error codes are not yet stable but can still be used for debugging through their textual representation using `const char* fw_strerror(FW_Error)`.
-
-## Slightly more useful and robust example
-
-`fw_once` initializes but also uninitializes the `FW` context object.
-This means that in some cases events already received by this context are lost.
-This is most likely in the case of `FW_MOVED_TO` and `FW_MOVED_FROM` events since these are usually generated
-by a single file move event and thus generated at the same time.
-
-
-In order to catch all events the context should be preserved until you no longer wish to watch the given path.
-This can be done using a combination of `fw_init`, `fw_watch` and `fw_deinit`.
-
-```C
-#define FW_IMPLEMENTATION
-#include "fw.h"
-
-int main(void){
-  FW fw;
-  const char* watch_path = ".";
-
-  if(fw_init(&fw, watch_path, FW_CREATE
-        | FW_MODIFY 
-        | FW_DELETE
-        | FW_RENAME
-      ) == false
-  ){
-    printf("init failed %s\n", fw_strerror(fw_error(&fw)));
-    return 1;
-  }
-
-  while(true){
-    if(fw_watch(&fw)){
-      if(fw_event(&fw) & FW_CREATE){
-        printf("created: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_MODIFY){
-        printf("modified: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_DELETE){
-        printf("deleted: %s\n", fw_name(&fw));
-      }else if(fw_event(&fw) & FW_RENAME){
-        printf("rename: %s -> %s\n", fw_name(&fw), fw_new_name(&fw));
-      }
-    }else{
-      printf("watch failed %s\n", fw_strerror(fw_error(&fw)));
-      return 1;
-    }
-  }
-
-  return 0;
-}
-```
