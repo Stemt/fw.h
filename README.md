@@ -38,6 +38,7 @@ For a slightly more robust example read further down below.
 ## Polling event functions
 
 | Function | Description |
+|-|-|
 | `bool fw_init(FW*, const char* path, FW_Event events)` | Initializes the context to watch `path` for the given `FW_Event`s |
 | `bool fw_watch(FW*)` | Watches the given `path` provided in `fw_init` and only returns when one of the specified events occured or an error occured. |
 | `void fw_deinit(FW*)` | Deinitializes the given context and cleans up any resources allocated by the context. Because event and error data is stored in the `FW` structure this is left accessible using the `fw_event`, `fw_name` and `fw_error` functions. |
@@ -48,6 +49,7 @@ For a slightly more robust example read further down below.
 FW provides support for 5 different kinds of events:
 
 | Event | Description |
+|-|-|
 | `FW_CREATE` | Received when a file is created |
 | `FW_DELETE` | Received when a file is deleted |
 | `FW_MODIFY` | Received when a file is modified |
@@ -59,7 +61,8 @@ FW provides support for 5 different kinds of events:
 The following function can be used to get event information from the `FW` context.
 
 | Getter | Description |
-| `FW_Event fw_event(FW*)` | 
+|-|-|
+| `FW_Event fw_event(FW*)` | The event that was received |
 | `const char* fw_name(FW*)` | Name of the affected file |
 
 ## Error Handling
