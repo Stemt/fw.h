@@ -46,8 +46,6 @@ For a slightly more robust example read further down below.
 
 ## Events
 
-FW provides support for 5 different kinds of events:
-
 | Event | Description |
 |-|-|
 | `FW_CREATE` | Received when a file is created. |
