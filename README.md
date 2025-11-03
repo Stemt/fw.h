@@ -1,6 +1,11 @@
 # fw.h
 Simple cross-platform file watcher
 
+## Currently Supported Platforms
+
+- Windows (win32)
+- Linux (inotify)
+
 ## Simplest Example
 
 The following example shows how to wait on a single specified `FW_Event` using a single function.
