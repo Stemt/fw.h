@@ -13,8 +13,8 @@ int main(int argc, char** argv){
     command = nob_shift_args(&argc, &argv);
   }
 
-#if defined(__linux)
   const char* target = "./app";
+#if defined(__linux)
   if(command != NULL 
       && strcmp(command, "cross") == 0
   ){
